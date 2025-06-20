@@ -15,7 +15,11 @@ class ImageProcessorApp:
         self.image_path = ""
         self.original_image = None
         self.processed_image = None
+<<<<<<< HEAD
         self.output_dir = os.path.join(tempfile.gettempdir(), "ImageProcessorOutput")
+=======
+        self.output_dir = "C:/Users/lenovo/Desktop/result"
+>>>>>>> 472e229655ee06e18a4c8f6d824b5302fbbcce35
         self.custom_filename = ""  # 自定义文件名
 
         # 创建输出目录
@@ -185,18 +189,30 @@ class ImageProcessorApp:
 
         # 获取自定义文件名
         custom_name = self.filename_var.get().strip()
+<<<<<<< HEAD
 
         # 生成保存路径
         original_name = os.path.splitext(os.path.basename(self.image_path))[0]
         process_type = self.process_var.get().split("-")[-1].strip()
 
+=======
+        
+        # 生成保存路径
+        original_name = os.path.splitext(os.path.basename(self.image_path))[0]
+        process_type = self.process_var.get().split("-")[-1].strip()
+        
+>>>>>>> 472e229655ee06e18a4c8f6d824b5302fbbcce35
         if custom_name:
             # 使用自定义文件名
             save_name = f"{custom_name}.jpg"
         else:
             # 使用默认文件名
             save_name = f"{original_name}_{process_type}.jpg"
+<<<<<<< HEAD
 
+=======
+            
+>>>>>>> 472e229655ee06e18a4c8f6d824b5302fbbcce35
         save_path = os.path.join(self.output_dir, save_name)
 
         # 确保目录存在
