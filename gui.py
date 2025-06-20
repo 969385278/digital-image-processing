@@ -1,8 +1,6 @@
+import tempfile
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
-import cv2
-import numpy as np
-import os
 from PIL import Image, ImageTk
 from utils import *  # 导入之前写的图像处理函数
 
@@ -17,11 +15,12 @@ class ImageProcessorApp:
         self.image_path = ""
         self.original_image = None
         self.processed_image = None
-        self.output_dir = "C:/Users/lenovo/Desktop/result"
+        self.output_dir = os.path.join(tempfile.gettempdir(), "ImageProcessorOutput")
+        self.custom_filename = ""  # 自定义文件名
 
         # 创建输出目录
         if not os.path.exists(self.output_dir):
-            os.makedirs(self.output_dir)
+            os.makedirs(self.output_dir, exist_ok=True)
 
         # 创建GUI界面
         self.create_widgets()
@@ -88,6 +87,21 @@ class ImageProcessorApp:
         self.btn_process = tk.Button(self.right_frame, text="处理图像", command=self.process_image)
         self.btn_process.pack(fill=tk.X, pady=5)
 
+        # 设置保存路径按钮
+        self.btn_set_path = tk.Button(self.right_frame, text="设置保存路径", command=self.set_output_dir)
+        self.btn_set_path.pack(fill=tk.X, pady=5)
+
+        # 自定义文件名输入框
+        self.filename_frame = tk.Frame(self.right_frame)
+        self.filename_frame.pack(fill=tk.X, pady=5)
+
+        self.filename_label = tk.Label(self.filename_frame, text="文件名:")
+        self.filename_label.pack(side=tk.LEFT)
+
+        self.filename_var = tk.StringVar()
+        self.filename_entry = tk.Entry(self.filename_frame, textvariable=self.filename_var)
+        self.filename_entry.pack(fill=tk.X, expand=True)
+
         # 保存按钮
         self.btn_save = tk.Button(self.right_frame, text="保存结果", command=self.save_image)
         self.btn_save.pack(fill=tk.X, pady=5)
@@ -112,6 +126,13 @@ class ImageProcessorApp:
             # 显示原始图像
             self.show_image(self.original_image, self.original_panel)
             self.status_var.set(f"已加载: {os.path.basename(file_path)}")
+
+    def set_output_dir(self):
+        """设置输出目录"""
+        dir_path = filedialog.askdirectory(title="选择保存目录")
+        if dir_path:
+            self.output_dir = dir_path
+            self.status_var.set(f"保存路径设置为: {dir_path}")
 
     def process_image(self):
         """处理图像"""
@@ -162,18 +183,38 @@ class ImageProcessorApp:
             messagebox.showerror("错误", "没有可保存的处理结果!")
             return
 
+        # 获取自定义文件名
+        custom_name = self.filename_var.get().strip()
+
         # 生成保存路径
         original_name = os.path.splitext(os.path.basename(self.image_path))[0]
         process_type = self.process_var.get().split("-")[-1].strip()
-        save_path = os.path.join(self.output_dir, f"{original_name}_{process_type}.jpg")
+
+        if custom_name:
+            # 使用自定义文件名
+            save_name = f"{custom_name}.jpg"
+        else:
+            # 使用默认文件名
+            save_name = f"{original_name}_{process_type}.jpg"
+
+        save_path = os.path.join(self.output_dir, save_name)
+
+        # 确保目录存在
+        if not os.path.exists(self.output_dir):
+            os.makedirs(self.output_dir)
 
         # 保存图像
-        cv2.imwrite(save_path, self.processed_image)
-        self.status_var.set(f"已保存: {save_path}")
-        messagebox.showinfo("保存成功", f"图像已保存到:\n{save_path}")
+        try:
+            cv2.imwrite(save_path, self.processed_image)
+            self.status_var.set(f"已保存: {save_path}")
+            messagebox.showinfo("保存成功", f"图像已保存到:\n{save_path}")
+        except Exception as e:
+            messagebox.showerror("保存错误", f"保存图像时出错:\n{str(e)}")
+            self.status_var.set("保存出错")
 
     def show_image(self, image, panel):
         """在指定面板显示图像"""
+
         # 调整图像大小以适应面板
         max_width = self.left_frame.winfo_width() - 20
         max_height = self.left_frame.winfo_height() // 2 - 20
@@ -193,12 +234,14 @@ class ImageProcessorApp:
         image = cv2.resize(image, (new_w, new_h))
 
         # 转换为PhotoImage
+        from PIL import Image
         img_pil = Image.fromarray(image)
         img_tk = ImageTk.PhotoImage(img_pil)
 
         # 更新面板
         panel.configure(image=img_tk)
         panel.image = img_tk  # 保持引用
+        setattr(self, f"{panel.winfo_name()}_photo", img_tk)
 
 
 # 运行应用程序

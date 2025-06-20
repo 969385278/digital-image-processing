@@ -1,6 +1,9 @@
 import cv2
 import numpy as np
-from matplotlib import pyplot as plt
+import matplotlib.pyplot as plt
+import os
+import torch
+
 
 def load_image(path):
     """加载图像"""
@@ -135,3 +138,32 @@ def deblurring(image, kernel_size=(5, 5), method='wiener'):
         fft_restored = fft_blurred / (fft_kernel + epsilon)
         restored = np.fft.ifft2(fft_restored)
         return np.abs(restored).astype(np.uint8)
+
+def save_image_samples(print_imgs, fake_imgs, real_imgs, batches_done, save_dir='images'):
+    os.makedirs(save_dir, exist_ok=True)
+
+    def denorm(img):
+        return (img + 1) / 2  # [-1,1] -> [0,1]
+
+    print_imgs = denorm(print_imgs.detach().cpu())[:8]
+    fake_imgs = denorm(fake_imgs.detach().cpu())[:8]
+    real_imgs = denorm(real_imgs.detach().cpu())[:8]
+
+    fig, axs = plt.subplots(3, 8, figsize=(16, 6))
+    for i in range(8):
+        axs[0, i].imshow(print_imgs[i].permute(1, 2, 0).squeeze(), cmap='gray')
+        axs[1, i].imshow(fake_imgs[i].permute(1, 2, 0).squeeze(), cmap='gray')
+        axs[2, i].imshow(real_imgs[i].permute(1, 2, 0).squeeze(), cmap='gray')
+        [ax.set_axis_off() for ax in axs[:, i]]
+
+    axs[0, 0].set_ylabel('Print', fontsize=12)
+    axs[1, 0].set_ylabel('Generated', fontsize=12)
+    axs[2, 0].set_ylabel('Real', fontsize=12)
+    plt.suptitle(f"Batch: {batches_done}", y=0.95)
+    plt.savefig(os.path.join(save_dir, f"{batches_done}.png"))
+    plt.close()
+
+
+def save_model(model, epoch, model_dir='saved_models', model_type='generator'):
+    os.makedirs(model_dir, exist_ok=True)
+    torch.save(model.state_dict(), os.path.join(model_dir, f"{model_type}_{epoch}.pth"))
