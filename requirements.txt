@@ -1,0 +1,10 @@
+torch==2.3.0+cpu
+torchvision==0.18.0
+torchaudio==2.3.0
+matplotlib==3.8.4
+natsort==8.4.0
+pypdf2==3.0.1
+Pillow==10.2.0      
+opencv-python==4.9.0 
+fpdf2==1.7.0         
+streamlit==1.25.0   
