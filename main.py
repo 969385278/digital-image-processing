@@ -23,7 +23,6 @@ def main():
 
     # 5. 图像锐化示例
     sharpened_laplace = laplacian_sharpen(image)  # 拉普拉斯锐化
-    sharpened_unsharp = unsharp_masking(image)  # 非锐化掩蔽
 
     # 6. 图像恢复示例
     # 6.1 添加噪声(为演示去噪效果)
